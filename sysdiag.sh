@@ -44,8 +44,10 @@ disks() {
 }
 
 kernel() {
+    cat /proc/cmdline > "${sys}/cmdline"
     dmesg -f kern > "${sys}/dmesg"
     uname -a > "${sys}/uname"
+    cat /proc/version > "${sys}/version"
 }
 
 sysbase() {
@@ -68,15 +70,17 @@ network() {
     for ns in $(ip netns | awk '{ print $1 }'); do
         mkdir -p "${net}/ns/$ns"
         ip netns exec $ns ip -4 address > "${net}/ns/$ns/ipv4-address"
+        ip netns exec $ns ip -4 -br address > "${net}/ns/$ns/ipv4-address-br"
         ip netns exec $ns ip -4 route > "${net}/ns/$ns/ipv4-route"
-        ip netns exec $ns ip -6 address > "${net}/ns/$ns/ipv4-address"
-        ip netns exec $ns ip -6 route > "${net}/ns/$ns/ipv4-route"
+        ip netns exec $ns ip -6 address > "${net}/ns/$ns/ipv6-address"
+        ip netns exec $ns ip -6 -br address > "${net}/ns/$ns/ipv6-address-br"
+        ip netns exec $ns ip -6 route > "${net}/ns/$ns/ipv6-route"
     done
 }
 
 hardware() {
     lscpu > "${hard}/lscpu"
-    dmidecode > "${hard}/dmidecode"
+    dmidecode &> "${hard}/dmidecode"
     sh lspci-emul-opt.sh > "${hard}/lspci"
 }
 
@@ -85,6 +89,21 @@ zeroos() {
 
     grep 'sshd: Accepted' /var/cache/log/system.log > "${zos}/ssh"
     cat /root/.ssh/authorized_keys > "${zos}/sshkeys"
+
+    identityd -id > "${zos}/nodeid"
+
+    modules="capacityd contd flistd identityd internet networkd provisiond storaged vmd zui"
+    for module in $modules; do
+        echo "$($module -v) [$module]" >> "${zos}/versions"
+    done
+
+    echo "$(cat /tmp/flist.name)" > "${zos}/flist-running-name"
+    cat /tmp/bins.info > "${zos}/binaries-flist"
+    cat /tmp/flist.info > "${zos}/flist-running"
+
+    du -shc /var/cache/modules/* > "${zos}/cache-usage"
+    ls -alh /var/cache/modules/networkd/ > "${zos}/networkd-list"
+    ls -alh /var/cache/modules/provisiond/reservations/ > "${zos}/reservations-list"
 }
 
 main() {
@@ -112,7 +131,11 @@ main() {
     zeroos
 
     echo "[+] packing responses"
-    tar -czf ${reportroot}/sysdiag-${reportid}.tar.gz ${reportdir}
+    tar -czf ${reportroot}/sysdiag-${reportid}.tar.gz -C ${reportroot} sysdiag-${reportid}
+
+    echo "[+]"
+    echo "[+] report ready: ${reportroot}/sysdiag-${reportid}.tar.gz"
+    echo "[+]"
 }
 
 main
