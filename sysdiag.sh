@@ -38,6 +38,7 @@ cleanup() {
 
 processes() {
     ps aux | grep -v ' \[' > "${proc}/ps"
+    ps -eo pid,etime,args | grep -v ' \[' > "${proc}/uptime"
 }
 
 disks() {
