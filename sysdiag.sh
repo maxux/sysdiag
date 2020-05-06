@@ -2,6 +2,7 @@
 reportroot="/tmp"
 reportid="$(date +%Y%m%d-%H%M)"
 reportdir="${reportroot}/sysdiag-${reportid}"
+lspcibin="$(dirname $0)/lspci-emul-opt.sh"
 
 initialize() {
     echo "[+]"
@@ -81,7 +82,8 @@ network() {
 hardware() {
     lscpu > "${hard}/lscpu"
     dmidecode &> "${hard}/dmidecode"
-    sh lspci-emul-opt.sh > "${hard}/lspci"
+
+    sh $lspcibin > "${hard}/lspci"
 }
 
 zeroos() {
