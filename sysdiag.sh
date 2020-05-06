@@ -32,6 +32,10 @@ initialize() {
     mkdir -p "${hard}"
 }
 
+cleanup() {
+    rm -rf "${reportdir}"
+}
+
 processes() {
     ps aux | grep -v ' \[' > "${proc}/ps"
 }
@@ -138,6 +142,8 @@ main() {
     echo "[+]"
     echo "[+] report ready: ${reportroot}/sysdiag-${reportid}.tar.gz"
     echo "[+]"
+
+    cleanup
 }
 
 main
