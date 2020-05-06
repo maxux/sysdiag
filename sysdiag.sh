@@ -109,6 +109,8 @@ zeroos() {
     cat /tmp/flist.info > "${zos}/flist-running"
 
     du -shc /var/cache/modules/* > "${zos}/cache-usage"
+    du -shc /var/cache/modules/*/* > "${zos}/cache-usage-deep"
+
     ls -alh /var/cache/modules/networkd/ > "${zos}/networkd-list"
     ls -alh /var/cache/modules/provisiond/reservations/ > "${zos}/reservations-list"
 }
