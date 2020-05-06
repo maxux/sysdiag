@@ -77,6 +77,18 @@ blockcmdline() {
     echo "" >> $of
 }
 
+zosprocup() {
+    subheader "Daemon Uptime"
+
+    echo "| PID | Uptime | Process |" >> $of
+    echo "|-----|--------|---------|" >> $of
+
+    modules="capacityd|cont|flistd|zinit|networkd|provisiond|storaged|vmd|zui|openvt|containerd"
+    grep -E "$modules" "${sysdiagroot}/proc/uptime" | grep -v g8ufs | awk '{ printf "| %s | %s | %s |\n", $1, $2, $3 }' >> $of
+
+    echo "" >> $of
+}
+
 netns() {
     for ns in ${sysdiagroot}/net/ns/*; do
         echo " * \`$(basename $ns)\`" >> $of
@@ -145,9 +157,11 @@ summary() {
     blockcode zos/networkd-list "Networks"
     blockcode zos/versions "Running Versions"
     blockcode zos/cache-usage "Cache Usage"
+    blockcode zos/cache-usage-deep "Cache Usage (deep)"
     blockcode zos/flist-running-name "Running Target"
     blockjson zos/flist-running "Running Files"
     blockcode zos/zinit "Services"
+    zosprocup
 
     subheader "System Logs"
 
